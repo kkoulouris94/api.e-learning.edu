@@ -48,4 +48,18 @@ class CoursesController extends Controller
 
         return $this->successResponse($enrollment, Response::HTTP_CREATED);
     }
+
+    /**
+     * @throws \Exception
+     */
+    public function complete(int $id): JsonResponse
+    {
+        $userId = Auth::user()->getAuthIdentifier();
+
+        $completion = $this->enrollmentService->complete($id, $userId);
+        if (!$completion)
+            throw new \Exception();
+
+        return $this->successResponse($completion, \Illuminate\Http\Response::HTTP_CREATED);
+    }
 }
