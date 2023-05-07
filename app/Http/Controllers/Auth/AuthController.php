@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Course;
+use App\Models\Enrollment;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Auth\AuthenticationException;
@@ -84,15 +85,19 @@ class AuthController extends Controller
         /** @var Student $student */
         $student = Auth::user()->type;
 
-        $courses =
-            $student->enrollments()
-                ->get();
-        $collectedInfo = [
-            'info' => $student,
-            'courses' => $courses
-        ];
+        $enrollments = Enrollment::with(['course', 'completion'])
+            ->where('student_id', $student->id)
+            ->get()
+            ->map(function ($enrollment) {
+                $returnedValue = $enrollment->course;
+                $returnedValue['completed'] = $enrollment->completion !== null;
+                return $returnedValue;
+            });
 
-        return $this->successResponse($collectedInfo);
+        return $this->successResponse([
+            'courses' => $enrollments,
+            'info' => Auth::user()
+        ]);
     }
 
     public function logout(): JsonResponse
