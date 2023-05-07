@@ -28,11 +28,5 @@ $router->group(['namespace' => 'Courses', 'prefix' => 'courses'], function () us
     $router->get('/{id}', 'CoursesController@showOne');
 
     $router->post('/{id}/enroll', 'CoursesController@enroll');
-
-});
-
-$router->group(['namespace' => 'Enrollments', 'prefix' => 'enrollments'], function () use ($router) {
-
-    $router->post('/{id}/complete', 'EnrollmentsController@complete');
-
+    $router->post('/{id}/complete', 'CoursesController@complete');
 });
