@@ -41,7 +41,9 @@ class EnrollmentService
         $studentId = User::findOrFail($userId)->type->id;
 
         /** @var Enrollment $enrollment */
-        $enrollment = Enrollment::findOrFail($id);
+        $enrollment = Enrollment::where('course_id', $id)
+            ->where('student_id', $studentId)
+            ->firstOrFail();
         if ($enrollment->student_id !== $studentId)
         {
             throw new UnauthorizedException('You don\'t have permission to access this resource');
