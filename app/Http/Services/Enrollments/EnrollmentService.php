@@ -43,15 +43,18 @@ class EnrollmentService
         /** @var Enrollment $enrollment */
         $enrollment = Enrollment::where('course_id', $id)
             ->where('student_id', $studentId)
-            ->firstOrFail();
+            ->first();
+
+        if (!$enrollment) {
+            throw new BadRequestException('You are not enrolled in this course');
+        }
+
         if ($enrollment->student_id !== $studentId)
         {
             throw new UnauthorizedException('You don\'t have permission to access this resource');
         }
 
-        $completion = Completion::where('enrollment_id', $id)
-            ->first();
-        if ($completion)
+        if ($enrollment->completion()->exists())
         {
             throw new BadRequestException('You have already completed this course');
         }
