@@ -1,0 +1,372 @@
+openapi: 3.0.3
+info:
+  title: Course API
+  description: |-
+    This is a sample Academy Server based on the OpenAPI 3.0 specification.
+  termsOfService: http://swagger.io/terms/
+  contact:
+    email: k.koulouris30@gmail.com
+  version: 1.0.0
+servers:
+  - url: http://localhost:9000
+tags:
+  - name: course
+    description: Operations about academy courses
+  - name: auth
+    description: Operations about authorization
+paths:
+  /course:
+    get:
+      tags:
+        - course
+      summary: Fetch all courses
+      description: Fetch all available courses to a logged-in student
+      operationId: listAll
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Course'
+        '401':
+          description: Unauthorized
+          
+  /course/{id}:
+    get:
+      tags:
+        - course
+      summary: Fetch course with specified ID
+      description: Fetch all details of course with given ID
+      operationId: showOne
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID of course
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/Course'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Course Not Found
+  /course/{id}/enroll:
+    post:
+      tags:
+        - course
+      summary: Enrolls authorized student to an existing course
+      operationId: enroll
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID of course
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '201':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Enrollment'
+        '400':
+          description: 'Student already enrolled in this course'
+        '404':
+          description: 'Student or Course not found'
+        '422':
+          description: 'Validation exception'
+  /course/{id}/complete:
+    post:
+      tags:
+        - course
+      summary: Completes course's enrollment of a student
+      operationId: complete
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: ID of course
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '204':
+          description: No Content
+        '400':
+          description: "You are not enrolled in this course or You have already completed this course"
+        '401':
+          description: "Unauthorized"
+        
+  /auth/register:
+    post:
+      tags:
+      - auth
+      summary: Registers a new user in application
+      operationId: register
+      requestBody:
+        description: Registration form object
+        content:
+          application/json:
+              schema:
+                $ref: '#/components/schemas/RegistrationForm'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+        '400': 
+          description: 'Email already taken'
+        '422':
+          description: 'Validation exception'
+      
+  /auth/login:
+    post:
+      tags:
+      - auth
+      summary: Logins a registered user 
+      operationId: login
+      requestBody:
+        description: Login form object
+        content:
+          application/json:
+              schema:
+                $ref: '#/components/schemas/LoginForm'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+        '401': 
+          description: 'Unauthorized'
+        '422':
+          description: 'Validation exception'
+  /auth/me:
+    post:
+      tags:
+        - auth
+      summary: Returns all information of a specific user
+      operationId: me
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  info:
+                    $ref: '#/components/schemas/User'
+                  courses:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CompletedCourse'
+  /auth/logout:
+    post:
+      tags:
+      - auth
+      summary: Logs out a registered user 
+      operationId: logout
+      security:
+        - BearerAuth: []
+      responses:
+        '204':
+          description: No content
+        '401':
+          description: Unauthorized
+  
+components:
+  schemas:
+    Course:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        title:
+          type: string
+          example: 'Event-Driven Microservices: Spring Boot, Kafka and Elastic'
+        description:
+          type: string
+          example: 'Master event-driven microservices architecture with patterns using Spring boot, Spring cloud, Kafka and Elasticsearch'
+        instructor:
+          type: string
+          example: 'Paul Ryan'
+        skill_level:
+          type: string
+          enum:
+            - All Levels
+            - Beginner
+            - Intermediate
+            - Advanced
+        lectures:
+          type: integer
+          format: int32
+          example: 226
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        deleted_at:
+          type: string
+          format: date-time
+    Enrollment:
+      type: object
+      properties:
+        id: 
+          type: integer
+          format: int32
+          example: 10
+        course_id:
+          type: integer
+          format: int32
+          example: 10
+        student_id:
+          type: integer
+          format: int32
+          example: 10
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    RegistrationForm:
+      type: object
+      properties:
+        first_name:
+          type: string
+          example: 'Aggelos'
+        last_name:
+          type: string
+          example: 'Papadopoulos'
+        email:
+          type: string
+          format: email
+          example: 'a.papadopoulos@email.com'
+        password:
+          type: string
+          minLength: 6
+          maxLength: 20
+    LoginForm:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: 'a.papadopoulos@email.com'
+        password:
+          type: string
+          minLength: 6
+          maxLength: 20
+    AuthTokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          format: jwt
+          description: User's access token
+        token_type:
+          type: string
+          example: 'bearer'
+        user:
+          $ref: '#/components/schemas/User'
+        expires_in:
+          type: integer
+          format: int32
+          example: 86400
+          description: The expiration time of token
+    User:
+      type: object
+      properties:
+        email: 
+          type: string
+        type_id:
+          type: integer
+          format: int32
+          example: 5
+          description: ID of specific user's category (e.g a student ID)
+        type_type:
+          type: string
+          example: App\\Models\\Student
+          description: Named category of the user
+        id:
+          type: integer
+          format: int32
+          example: 5
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    CompletedCourse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        title:
+          type: string
+          example: 'Event-Driven Microservices: Spring Boot, Kafka and Elastic'
+        description:
+          type: string
+          example: 'Master event-driven microservices architecture with patterns using Spring boot, Spring cloud, Kafka and Elasticsearch'
+        instructor:
+          type: string
+          example: 'Paul Ryan'
+        skill_level:
+          type: string
+          enum:
+            - All Levels
+            - Beginner
+            - Intermediate
+            - Advanced
+        lectures:
+          type: integer
+          format: int32
+          example: 226
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        deleted_at:
+          type: string
+          format: date-time
+        completed:
+          type: boolean
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
