@@ -60,6 +60,6 @@ class CoursesController extends Controller
         if (!$completion)
             throw new \Exception();
 
-        return $this->successResponse($completion, \Illuminate\Http\Response::HTTP_CREATED);
+        return $this->successResponse(null, \Illuminate\Http\Response::HTTP_NO_CONTENT);
     }
 }
